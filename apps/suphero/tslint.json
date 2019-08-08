@@ -1,7 +1,7 @@
 {
   "extends": "../../tslint.json",
   "rules": {
-    "directive-selector": [true, "attribute", "supcodeMono", "camelCase"],
-    "component-selector": [true, "element", "supcode-mono", "kebab-case"]
+    "directive-selector": [true, "attribute", "supHero", "camelCase"],
+    "component-selector": [true, "element", "sup-hero", "kebab-case"]
   }
 }

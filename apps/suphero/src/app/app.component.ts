@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Message } from '@supcode-mono/api-interfaces';
 
 @Component({
-  selector: 'supcode-mono-root',
+  selector: 'sup-hero-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
