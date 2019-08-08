@@ -7,5 +7,6 @@
   "video": true,
   "videosFolder": "../../dist/cypress/apps/suphero-e2e/videos",
   "screenshotsFolder": "../../dist/cypress/apps/suphero-e2e/screenshots",
-  "chromeWebSecurity": false
+  "chromeWebSecurity": false,
+  "projectId": "jyisda"
 }
