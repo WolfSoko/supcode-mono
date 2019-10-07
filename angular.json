@@ -21,7 +21,10 @@
               "apps/suphero/src/favicon.ico",
               "apps/suphero/src/assets"
             ],
-            "styles": ["apps/suphero/src/styles.css"],
+            "styles": [
+              "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
+              "apps/suphero/src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -200,7 +203,7 @@
     }
   },
   "cli": {
-    "defaultCollection": "@nrwl/angular"
+    "defaultCollection": "@datorama/akita"
   },
   "schematics": {
     "@nrwl/angular:application": {
