@@ -1,0 +1,11 @@
+<div *ngIf="(query.select() | async) as state">
+  <span>
+    Timer:
+  </span>
+  <span>{{state.time}}</span>
+  <span>
+    Views:
+  </span>
+  <span>{{state.views}}</span>
+
+</div>
