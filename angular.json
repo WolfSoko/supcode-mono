@@ -66,6 +66,19 @@
             }
           }
         },
+        "serveE2E": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "suphero:build",
+            "proxyConfig": "apps/suphero/proxy.conf.json",
+            "port": 4201
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "suphero:build:production"
+            }
+          }
+        },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
@@ -102,7 +115,7 @@
           "options": {
             "cypressConfig": "apps/suphero-e2e/cypress.json",
             "tsConfig": "apps/suphero-e2e/tsconfig.e2e.json",
-            "devServerTarget": "suphero:serve"
+            "devServerTarget": "suphero:serveE2E"
           },
           "configurations": {
             "production": {

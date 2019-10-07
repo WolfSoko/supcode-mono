@@ -16,7 +16,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@supcode-mono/api-interfaces": ["libs/api-interfaces/src/index.ts"]
+      "@supcode-mono/api-interfaces": ["libs/api-interfaces/src/index.ts"],
     }
   },
   "exclude": ["node_modules", "tmp"]

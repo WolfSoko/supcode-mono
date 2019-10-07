@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import {RouterModule} from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -14,7 +15,7 @@ import { environment } from '../environments/environment';
     BrowserModule,
     HttpClientModule,
     environment.production ? [] : AkitaNgDevtools.forRoot(),
-    AkitaNgRouterStoreModule.forRoot()
+    // AkitaNgRouterStoreModule.forRoot()
   ],
   providers: [
     {
