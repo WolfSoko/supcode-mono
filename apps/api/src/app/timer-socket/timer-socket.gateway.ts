@@ -14,10 +14,9 @@ export class TimerSocketGateway implements OnGatewayConnection, OnGatewayDisconn
   constructor(private readonly timerService: TimerSocketService) {
   }
 
-  @WebSocketServer() server: Server;
+  @WebSocketServer( ) server: Server;
 
   views = 0;
-
 
   async handleConnection() {
     this.views++;
@@ -34,7 +33,7 @@ export class TimerSocketGateway implements OnGatewayConnection, OnGatewayDisconn
   handleTimer(client: Client, data: unknown): Observable<WsResponse<TimerMessage>> {
     return this.timerService.getTime$().pipe(
       map(time => ({time})),
-      concatMap(timerMessage => of({event: 'liveticker', data: timerMessage}))
+      concatMap(timerMessage => of({event: 'time', data: timerMessage}))
     );
   }
 
