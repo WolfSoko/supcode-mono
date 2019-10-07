@@ -1,4 +1,4 @@
-import {Injectable, Param} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import { Message } from '@supcode-mono/api-interfaces';
 
 @Injectable()
