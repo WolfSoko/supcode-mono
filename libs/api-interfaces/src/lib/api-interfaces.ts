@@ -3,5 +3,5 @@ export interface Message {
 }
 
 export interface TimerMessage {
-  time: number;
+  time: Date;
 }

@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
 
 export interface TimerState {
-   time: number;
+   time: Date;
    views: number;
-
 }
 
 export function createInitialState(): TimerState {
   return {
-    time: 0,
+    time: new Date(),
     views: 0
   };
 }

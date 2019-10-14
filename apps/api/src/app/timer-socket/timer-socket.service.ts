@@ -1,12 +1,14 @@
 import {interval, Observable} from 'rxjs';
-import {share} from 'rxjs/operators';
+import {map, share} from 'rxjs/operators';
 
 export class TimerSocketService {
 
-  private timerInterval$ = interval(1000);
-  private sharedTimer$ = this.timerInterval$.pipe(share());
+  private timerInterval$ = interval(100);
+  private sharedTimer$: Observable<Date> = this.timerInterval$.pipe(
+    map(value => new Date()),
+    share());
 
-  getTime$(): Observable<number> {
+  getTime$(): Observable<Date> {
     return this.sharedTimer$;
   }
 
