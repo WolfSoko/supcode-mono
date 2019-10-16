@@ -1,6 +1,4 @@
-import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Message } from '@supcode-mono/api-interfaces';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'sup-hero-root',
@@ -8,6 +6,6 @@ import { Message } from '@supcode-mono/api-interfaces';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  hello$ = this.http.get<Message>('/api/hello');
-  constructor(private http: HttpClient) {}
+  constructor() {
+  }
 }

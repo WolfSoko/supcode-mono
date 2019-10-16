@@ -6,7 +6,7 @@
       "schematics": {},
       "root": "apps/suphero",
       "sourceRoot": "apps/suphero/src",
-      "prefix": "supcode-mono",
+      "prefix": "sup-hero",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
