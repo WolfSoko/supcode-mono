@@ -50,7 +50,7 @@
     "@nestjs/platform-socket.io": "^6.8.2",
     "@nestjs/websockets": "^6.8.2",
     "@nrwl/angular": "8.6.0",
-    "core-js": "^2.5.4",
+    "core-js": "^3.3.3",
     "hammerjs": "^2.0.8",
     "ngx-socket-io": "^3.0.1",
     "p5": "^0.10.0",
