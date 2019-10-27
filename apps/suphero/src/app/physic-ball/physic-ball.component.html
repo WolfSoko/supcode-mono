@@ -1,1 +1,33 @@
-<mat-slider [max]="300" [min]="0" [(value)]="ballsAmount" [thumbLabel]="true"></mat-slider>
+<mat-card>
+  <mat-card-title>
+    Planets/Balls simulation
+  </mat-card-title>
+  <div #physicsCanvas></div>
+</mat-card>
+<mat-card>
+  <mat-card-title>
+    Configure
+  </mat-card-title>
+  <mat-card-content>
+    <form [formGroup]="options">
+      <div>
+        <mat-slider [max]="300" [min]="1" formControlName="ballsAmount" [thumbLabel]="true"></mat-slider>
+        <mat-label>Amount of Planets/Balls {{options.value.ballsAmount}}</mat-label>
+      </div>
+      <div>
+        <mat-slider [max]="1200" [min]="200" formControlName="width" [thumbLabel]="true"></mat-slider>
+        <mat-label>Width: {{options.value.width}}</mat-label>
+      </div>
+      <div>
+        <mat-slider [max]="1200" [min]="200" formControlName="height" [thumbLabel]="true"></mat-slider>
+        <mat-label>Height: {{options.value.height}}</mat-label>
+      </div>
+      <div>
+        <mat-checkbox formControlName="gravityEnabled">Gravity enabled</mat-checkbox>
+      </div>
+      <div>
+        <mat-checkbox formControlName="wallsEnabled">Walls enabled</mat-checkbox>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

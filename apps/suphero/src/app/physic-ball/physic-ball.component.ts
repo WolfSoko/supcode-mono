@@ -1,144 +1,145 @@
-import {Component, OnInit} from '@angular/core';
-import * as p5 from 'p5';
+import {AfterContentInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {UntilDestroy} from '@ngneat/until-destroy';
 import * as P5 from 'p5';
+import {concat, of} from 'rxjs';
+import {distinctUntilChanged} from 'rxjs/operators';
+import {Ball} from './ball';
 
+interface PhysicBallOptions {
+  ballSize: number;
+  gravityEnabled: boolean;
+  ballsAmount: number;
+  gravityForce: number;
+  wallsEnabled: boolean;
+  width: number;
+  height: number;
+}
 
+const defaultOptions: PhysicBallOptions = {
+  ballsAmount: 10,
+  ballSize: 50,
+  gravityEnabled: true,
+  gravityForce: 0.9,
+  wallsEnabled: true,
+  width: 480,
+  height: 320
+};
+
+async function sleep(timeout: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
+@UntilDestroy({checkProperties: true})
 @Component({
   selector: 'sup-hero-physic-ball',
   templateUrl: './physic-ball.component.html',
   styleUrls: ['./physic-ball.component.scss']
 })
-export class PhysicBallComponent implements OnInit {
-  private myP5: p5;
-  balls = [];
-  ballSize = 50;
+export class PhysicBallComponent implements AfterContentInit, OnDestroy {
+  balls: Ball[] = [];
+  options: FormGroup;
 
-  constructor() {
+  @ViewChild('physicsCanvas', {static: true}) canvasElemRef: ElementRef;
+  private p5Canvas: P5;
+
+  constructor(fb: FormBuilder) {
+    this.options = fb.group(defaultOptions);
   }
 
-  ngOnInit(): void {
+  ngAfterContentInit(): void {
+    const options$ = concat(of(defaultOptions), this.options.valueChanges);
+    options$.pipe(
+      distinctUntilChanged((
+        {width: w1, height: h1}, {width: w2, height: h2}) =>
+        w1 === w2 && h1 === h2
+      )
+    ).subscribe(
+      ({width, height}) => this.adjustCanvasSize(width, height));
+
     this.createCanvas();
   }
 
-  get ballsAmount() {
-    return this.balls.length;
+  adjustBallsLength(ballsAmount: number, ballSize: number) {
+    const length = this.balls.length;
+    if (length < ballsAmount) {
+      this.addBall(ballSize);
+    }
+    if (length > ballsAmount) {
+      this.removeBall();
+    }
   }
 
-  set ballsAmount(amountBalls: number) {
-    const tempBalls = [];
-    for (let i = 0; i < amountBalls; i++) {
-      tempBalls.push(new Ball(Math.random() * this.myP5.width, Math.random() * this.myP5.height, this.ballSize * Math.random(), Math.random() * 0.8, Math.random() * 255, Math.random() * 255, Math.random() * 255));
+  async addBall(ballSize) {
+    const size = ballSize * Math.random();
+    const {height, width} = this.options.value;
+    this.balls.push(new Ball(Math.random() * width, Math.random() * height, size, Math.random() * 0.8, Math.random() * 255, Math.random() * 255, Math.random() * 255));
+  }
+
+  removeBall() {
+    if (this.balls.length > 1) {
+      this.balls.shift();
     }
-    this.balls = tempBalls;
   }
 
   private createCanvas() {
-    this.myP5 = new P5(p5Canvas => this.sketch(p5Canvas));
+    new P5(p5Canvas =>
+      this.sketch(p5Canvas), this.canvasElemRef.nativeElement);
   }
 
-  private sketch(canvas: p5) {
+  private sketch(canvas: P5) {
+
+    this.p5Canvas = canvas;
 
     canvas.setup = () => {
-      canvas.createCanvas(1200, 800);
+      const {height, width} = this.options.value;
+      canvas.createCanvas(width, height);
       const y = canvas.height / 2;
     };
 
-
     canvas.draw = () => {
+      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled} = this.options.value;
       canvas.background(20, 20, 20, 20);
+      this.adjustBallsLength(ballsAmount, ballSize);
 
       this.balls.forEach(ball => {
+          if (canvas.mouseIsPressed) {
+            let ax = canvas.mouseX - ball.x;
+            let ay = canvas.mouseY - ball.y;
 
-        if (canvas.mouseIsPressed) {
-          let ax = canvas.mouseX - ball.x;
-          let ay = canvas.mouseY - ball.y;
+            const rPow = ax * ax + ay * ay;
 
-          const rPow = ax * ax + ay * ay;
-
-          if (rPow > 0) {
-            const f = 6.7 * (500 + ball.mass) / rPow;
-            ax = Math.sign(ax) * f;
-            ay = Math.sign(ay) * f;
-            ball.push(ax, ay);
+            if (rPow > 0) {
+              const f = 6.7 * (500 + ball.mass) / rPow;
+              ax = Math.sign(ax) * f;
+              ay = Math.sign(ay) * f;
+              ball.applyForce(ax, ay);
+            }
           }
+
+
+          if (gravityEnabled) {
+            ball.applyForce(0, gravityForce);
+          }
+          if (wallsEnabled) {
+            ball.handleCollision(0, 0, canvas.width, canvas.height);
+          }
+          ball.updatePosition(canvas.deltaTime);
+          ball.draw(canvas);
         }
-
-        // ball.applyForce(0, 0.9);
-
-        // ball.handleCollision(0, 0, canvas.width, canvas.height);
-        ball.updatePosition(canvas.deltaTime);
-        ball.constrain(0, 0, canvas.width, canvas.height);
-        ball.draw(canvas);
-      });
+      );
     };
-
   }
 
-}
-
-class Ball {
-
-  private ax = 0;
-  private ay = 0;
-  private vx = 0;
-  private vy = 0;
-  mass = 0;
-
-
-  constructor(public x, public y, private size, private elasticity = 0.7, private r, private g, private b) {
-    this.mass = size * Math.PI;
-  }
-
-  draw(canvas: p5) {
-    canvas.fill(this.r, this.g, this.b);
-    canvas.circle(this.x, this.y, this.size);
-  }
-
-  updatePosition(timeStep: number) {
-    this.vx = this.vx + this.ax / this.mass;
-    this.vy = this.vy + this.ay / this.mass;
-    this.x = this.x + this.vx * timeStep;
-    this.y = this.y + this.vy * timeStep;
-    this.ax = 0;
-    this.ay = 0;
-  }
-
-  applyForce(x, y) {
-    this.push(x, y);
-  }
-
-  push(ax: number, ay: number) {
-    this.ax = this.ax + ax;
-    this.ay = this.ay + ay;
-  }
-
-  handleCollision(left: number, top: number, right: number, bottom: number) {
-    if (this.x <= left && this.vx < 0) {
-      this.vx = -this.vx * this.elasticity;
-    }
-    if (this.x >= right && this.vx > 0) {
-      this.vx = -this.vx * this.elasticity;
-    }
-    if (this.y >= bottom && this.vy > 0) {
-      this.vy = -this.vy * this.elasticity;
-    }
-    if (this.y <= top && this.vy < 0) {
-      this.vy = -this.vy * this.elasticity;
+  ngOnDestroy() {
+    if (this.p5Canvas) {
+      this.p5Canvas.remove();
     }
   }
 
-  constrain(xMin: number, yMin: number, xMax: number, yMax: number) {
-    if (this.x < xMin) {
-      this.x = xMin;
-    }
-    if (this.x > xMax) {
-      this.x = xMax;
-    }
-    if (this.y < yMin) {
-      this.y = yMin;
-    }
-    if (this.y > yMax) {
-      this.y = yMax;
+  private adjustCanvasSize(width, height) {
+    if (this.p5Canvas) {
+      this.p5Canvas.resizeCanvas(width, height);
     }
   }
 }

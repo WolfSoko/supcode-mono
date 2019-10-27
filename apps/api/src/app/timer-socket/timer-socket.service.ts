@@ -3,7 +3,7 @@ import {map, share} from 'rxjs/operators';
 
 export class TimerSocketService {
 
-  private timerInterval$ = interval(100);
+  private timerInterval$ = interval(500);
   private sharedTimer$: Observable<Date> = this.timerInterval$.pipe(
     map(value => new Date()),
     share());

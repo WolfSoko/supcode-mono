@@ -16,7 +16,7 @@
             "main": "apps/suphero/src/main.ts",
             "polyfills": "apps/suphero/src/polyfills.ts",
             "tsConfig": "apps/suphero/tsconfig.app.json",
-            "aot": false,
+            "aot": true,
             "assets": [
               "apps/suphero/src/favicon.ico",
               "apps/suphero/src/assets"
@@ -25,8 +25,7 @@
               "./node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
               "apps/suphero/src/styles.scss"
             ],
-            "scripts": [
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -233,7 +232,8 @@
     }
   },
   "cli": {
-    "defaultCollection": "@datorama/akita"
+    "defaultCollection": "@datorama/akita",
+    "analytics": "12d921da-66a2-4c05-9070-44d923f360b8"
   },
   "schematics": {
     "@nrwl/angular:application": {

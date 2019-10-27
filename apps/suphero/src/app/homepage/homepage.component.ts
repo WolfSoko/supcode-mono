@@ -9,7 +9,7 @@ import {Observable} from 'rxjs';
   styleUrls: ['./homepage.component.css']
 })
 export class HomepageComponent implements OnInit {
-  private hello$: Observable<Message>;
+  hello$: Observable<Message>;
 
 
   constructor(private http: HttpClient) {
