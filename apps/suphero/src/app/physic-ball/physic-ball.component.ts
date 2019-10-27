@@ -10,7 +10,8 @@ import * as P5 from 'p5';
 })
 export class PhysicBallComponent implements OnInit {
   private myP5: p5;
-
+  balls = [];
+  ballSize = 50;
 
   constructor() {
   }
@@ -19,28 +20,34 @@ export class PhysicBallComponent implements OnInit {
     this.createCanvas();
   }
 
+  get ballsAmount() {
+    return this.balls.length;
+  }
+
+  set ballsAmount(amountBalls: number) {
+    const tempBalls = [];
+    for (let i = 0; i < amountBalls; i++) {
+      tempBalls.push(new Ball(Math.random() * this.myP5.width, Math.random() * this.myP5.height, this.ballSize * Math.random(), Math.random() * 0.8, Math.random() * 255, Math.random() * 255, Math.random() * 255));
+    }
+    this.balls = tempBalls;
+  }
+
   private createCanvas() {
-    this.myP5 = new P5(this.sketch);
+    this.myP5 = new P5(p5Canvas => this.sketch(p5Canvas));
   }
 
   private sketch(canvas: p5) {
-    const ballSize = 50;
-    const balls: Ball[] = [];
-
-    const amountBalls = 20;
 
     canvas.setup = () => {
       canvas.createCanvas(1200, 800);
       const y = canvas.height / 2;
-      for (let i = 0; i < amountBalls; i++)
-        balls.push(new Ball(Math.random() * canvas.width, Math.random() * canvas.height, ballSize * Math.random(), Math.random() * 0.8, Math.random() * 255, Math.random() * 255, Math.random() * 255));
     };
 
 
     canvas.draw = () => {
       canvas.background(20, 20, 20, 20);
 
-      balls.forEach(ball => {
+      this.balls.forEach(ball => {
 
         if (canvas.mouseIsPressed) {
           let ax = canvas.mouseX - ball.x;
@@ -84,7 +91,7 @@ class Ball {
 
   draw(canvas: p5) {
     canvas.fill(this.r, this.g, this.b);
-    canvas.circle(this.x - this.size / 2, this.y - this.size / 2, this.size);
+    canvas.circle(this.x, this.y, this.size);
   }
 
   updatePosition(timeStep: number) {
