@@ -4,14 +4,16 @@ import {UntilDestroy} from '@ngneat/until-destroy';
 import * as P5 from 'p5';
 import {concat, of} from 'rxjs';
 import {distinctUntilChanged} from 'rxjs/operators';
+import {Vector} from 'vector2d';
 import {Ball} from './ball';
 
 interface PhysicBallOptions {
   ballSize: number;
-  gravityEnabled: boolean;
   ballsAmount: number;
+  gravityEnabled: boolean;
   gravityForce: number;
   wallsEnabled: boolean;
+  collisionsEnabled: boolean;
   width: number;
   height: number;
 }
@@ -22,6 +24,7 @@ const defaultOptions: PhysicBallOptions = {
   gravityEnabled: true,
   gravityForce: 0.9,
   wallsEnabled: true,
+  collisionsEnabled: true,
   width: 480,
   height: 320
 };
@@ -98,28 +101,33 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
     };
 
     canvas.draw = () => {
-      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled} = this.options.value;
+      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled} = this.options.value as PhysicBallOptions;
       canvas.background(20, 20, 20, 20);
       this.adjustBallsLength(ballsAmount, ballSize);
 
       this.balls.forEach(ball => {
           if (canvas.mouseIsPressed) {
-            let ax = canvas.mouseX - ball.x;
-            let ay = canvas.mouseY - ball.y;
-
-            const rPow = ax * ax + ay * ay;
-
+            const mP = new Vector(canvas.mouseX, canvas.mouseY);
+            const direction = ball.getP().subtract(mP);
+            const distance = mP.distance(ball.p);
+            const rPow = distance * distance;
             if (rPow > 0) {
               const f = 6.7 * (500 + ball.mass) / rPow;
-              ax = Math.sign(ax) * f;
-              ay = Math.sign(ay) * f;
-              ball.applyForce(ax, ay);
+              const a = direction.normalise().multiplyByScalar(-f);
+              ball.applyForce(a);
             }
           }
 
-
           if (gravityEnabled) {
-            ball.applyForce(0, gravityForce);
+            ball.applyForce(new Vector(0, gravityForce));
+          }
+
+          if (collisionsEnabled) {
+            for (let i = 0; i < this.balls.length - 1; i++) {
+              for (let j = i + 1; j < this.balls.length; j++) {
+                this.balls[i].checkCollision(this.balls[j]);
+              }
+            }
           }
           if (wallsEnabled) {
             ball.handleCollision(0, 0, canvas.width, canvas.height);

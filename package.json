@@ -57,6 +57,7 @@
     "p5": "^0.10.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~7.0.0-alpha.0",
+    "vector2d": "^3.0.0",
     "zone.js": "^0.9.1"
   },
   "devDependencies": {

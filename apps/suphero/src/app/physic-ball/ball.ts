@@ -1,70 +1,74 @@
-import * as P5 from 'p5';
+import {AbstractVector, Vector} from 'vector2d';
 
 export class Ball {
 
-  private ax = 0;
-  private ay = 0;
-  private vx = 0;
-  private vy = 0;
-   mass = 0;
-  private radius = 0;
+  a: Vector = new Vector(0, 0);
+  v: Vector = new Vector(0, 0);
+  p: Vector = new Vector(0, 0);
+  mass = 0;
+  radius = 0;
 
 
-  constructor(public x, public y, private size, private elasticity = 0.7, private r, private g, private b) {
+  constructor(x: number, y: number, private size: number, private elasticity = 0.7, private r, private g, private b) {
+    this.p = new Vector(x, y);
     this.radius = size / 2.;
     this.mass = size * size * Math.PI;
   }
 
-  draw(canvas: P5) {
+  draw(canvas: any) {
     canvas.noStroke();
     canvas.fill(this.r, this.g, this.b);
-    canvas.circle(this.x, this.y, this.size);
+    canvas.circle(this.p.x, this.p.y, this.size);
   }
 
   updatePosition(timeStep: number) {
-    this.vx = this.vx + this.ax / this.mass;
-    this.vy = this.vy + this.ay / this.mass;
-    this.x = this.x + this.vx * timeStep;
-    this.y = this.y + this.vy * timeStep;
-    this.ax = 0;
-    this.ay = 0;
+    this.v.add(this.a.divideByScalar(this.mass));
+    this.p.add(this.v.clone().multiplyByScalar(timeStep));
+    this.a = new Vector(0, 0);
   }
 
-  applyForce(x, y) {
-    this.ax = this.ax + x;
-    this.ay = this.ay + y;
+  applyForce(v) {
+    this.a.add(v);
   }
+
   handleCollision(left: number, top: number, right: number, bottom: number) {
-    if (this.x - this.radius < left && this.vx < 0) {
-      this.vx = -this.vx * this.elasticity;
-      this.x = this.radius;
+    if (this.p.x - this.radius < left && this.v.x < 0) {
+      this.v.multiplyByVector(new Vector(-this.elasticity, 1));
+      this.p.setX(this.radius);
     }
-    if (this.x + this.radius >= right && this.vx > 0) {
-      this.vx = -this.vx * this.elasticity;
-      this.x = right - this.radius;
+    if (this.p.x + this.radius > right && this.v.x > 0) {
+      this.v.multiplyByVector(new Vector(-this.elasticity, 1));
+      this.p.setX(right - this.radius);
     }
-    if (this.y + this.radius >= bottom && this.vy > 0) {
-      this.vy = -this.vy * this.elasticity;
-      this.y = bottom - this.radius;
+    if (this.p.y + this.radius > bottom && this.v.y > 0) {
+      this.v.multiplyByVector(new Vector(1, -this.elasticity));
+      this.p.setY(bottom - this.radius);
     }
-    if (this.y - this.radius <= top && this.vy < 0) {
-      this.vy = -this.vy * this.elasticity;
-      this.y = this.radius;
+
+    if (this.p.y - this.radius < top && this.v.y < 0) {
+      this.v.multiplyByVector(new Vector(1, -this.elasticity));
+      this.p.setY(this.radius);
     }
   }
 
-  constrain(xMin: number, yMin: number, xMax: number, yMax: number) {
-    if (this.x < xMin) {
-      this.x = xMin;
+  checkCollision(other: Ball) {
+    if (this.p.distance(other.p) > this.radius + other.radius) {
+      return;
     }
-    if (this.x > xMax) {
-      this.x = xMax;
-    }
-    if (this.y < yMin) {
-      this.y = yMin;
-    }
-    if (this.y > yMax) {
-      this.y = yMax;
-    }
+    // Vector perpendicular to (x, y) is (-y, x)
+    const tangentVec = new Vector((other.p.y - this.p.y), -(other.p.x - this.p.x));
+    tangentVec.normalise();
+
+    const relativeVelocity = this.v.clone().subtract(other.v);
+    const length = relativeVelocity.dot(tangentVec);
+    const velocityComponentOnTangent = tangentVec.clone().multiplyByScalar(length);
+    const velocityComponentPerpendicularToTangent = relativeVelocity.clone().subtract(velocityComponentOnTangent);
+
+    this.v.subtract(velocityComponentPerpendicularToTangent);
+    other.v.add(velocityComponentPerpendicularToTangent)
+  }
+
+  getP(): AbstractVector {
+    return this.p.clone();
   }
 }
