@@ -2,20 +2,24 @@ import {AfterContentInit, Component, ElementRef, OnDestroy, ViewChild} from '@an
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {UntilDestroy} from '@ngneat/until-destroy';
 import * as P5 from 'p5';
-import {concat, of} from 'rxjs';
+import {concat, interval, of, Subscription} from 'rxjs';
 import {distinctUntilChanged} from 'rxjs/operators';
 import {Vector} from 'vector2d';
 import {Ball} from './ball';
+import {Collision} from './collision';
 
 interface PhysicBallOptions {
   ballSize: number;
   ballsAmount: number;
   gravityEnabled: boolean;
   gravityForce: number;
+  restitution: number;
   wallsEnabled: boolean;
   collisionsEnabled: boolean;
   width: number;
   height: number;
+  iterations: number;
+  speed: number;
 }
 
 const defaultOptions: PhysicBallOptions = {
@@ -23,15 +27,14 @@ const defaultOptions: PhysicBallOptions = {
   ballSize: 50,
   gravityEnabled: true,
   gravityForce: 0.9,
+  restitution: 0.9,
   wallsEnabled: true,
   collisionsEnabled: true,
   width: 480,
-  height: 320
+  height: 320,
+  iterations: 10,
+  speed: 10,
 };
-
-async function sleep(timeout: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, timeout));
-}
 
 @UntilDestroy({checkProperties: true})
 @Component({
@@ -42,12 +45,16 @@ async function sleep(timeout: number): Promise<void> {
 export class PhysicBallComponent implements AfterContentInit, OnDestroy {
   balls: Ball[] = [];
   options: FormGroup;
+  dataSource: { x: number; y: number; index: number }[] = [];
 
   @ViewChild('physicsCanvas', {static: true}) canvasElemRef: ElementRef;
   private p5Canvas: P5;
+  private updateDataSourceSub: Subscription;
+  debug: false;
 
   constructor(fb: FormBuilder) {
     this.options = fb.group(defaultOptions);
+    this.updateDataSourceSub = interval(200).subscribe(value => this.updateDataSource());
   }
 
   ngAfterContentInit(): void {
@@ -73,10 +80,13 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
     }
   }
 
-  async addBall(ballSize) {
+  addBall(ballSize) {
     const size = ballSize * Math.random();
-    const {height, width} = this.options.value;
-    this.balls.push(new Ball(Math.random() * width, Math.random() * height, size, Math.random() * 0.8, Math.random() * 255, Math.random() * 255, Math.random() * 255));
+    const {height, width, restitution} = this.options.value as PhysicBallOptions;
+    const newBall = new Ball(Math.random() * width, Math.random() * height, size, restitution, Math.random() * 255, Math.random() * 255, Math.random() * 255);
+    if (this.balls.every(value => !newBall.hasCollisionWith(value))) {
+      this.balls.push(newBall);
+    }
   }
 
   removeBall() {
@@ -86,7 +96,7 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
   }
 
   private createCanvas() {
-    new P5(p5Canvas =>
+    const myP5 = new P5(p5Canvas =>
       this.sketch(p5Canvas), this.canvasElemRef.nativeElement);
   }
 
@@ -101,41 +111,57 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
     };
 
     canvas.draw = () => {
-      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled} = this.options.value as PhysicBallOptions;
+      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled, iterations, speed} = this.options.value as PhysicBallOptions;
       canvas.background(20, 20, 20, 20);
       this.adjustBallsLength(ballsAmount, ballSize);
 
-      this.balls.forEach(ball => {
-          if (canvas.mouseIsPressed) {
-            const mP = new Vector(canvas.mouseX, canvas.mouseY);
-            const direction = ball.getP().subtract(mP);
-            const distance = mP.distance(ball.p);
-            const rPow = distance * distance;
-            if (rPow > 0) {
-              const f = 6.7 * (500 + ball.mass) / rPow;
-              const a = direction.normalise().multiplyByScalar(-f);
-              ball.applyForce(a);
-            }
-          }
+      for (let iter = 0; iter <= iterations; iter++) {
+        const collisions: Collision[] = [];
+        this.balls.forEach(ball => {
+            if (canvas.mouseIsPressed) {
+              const mP = new Vector(canvas.mouseX, canvas.mouseY);
+              const direction = ball.p.subtract(mP);
+              const distance = mP.distance(ball.p);
+              const rPow = distance * distance;
 
-          if (gravityEnabled) {
-            ball.applyForce(new Vector(0, gravityForce));
-          }
-
-          if (collisionsEnabled) {
-            for (let i = 0; i < this.balls.length - 1; i++) {
-              for (let j = i + 1; j < this.balls.length; j++) {
-                this.balls[i].checkCollision(this.balls[j]);
+              if (rPow > 0) {
+                const f = 6.7 * (500 + ball.mass) / Math.min(rPow, 1000);
+                const a = direction.normalise().multiplyByScalar(-f);
+                ball.applyForce(a);
               }
             }
+
+            if (gravityEnabled) {
+              ball.applyForce(new Vector(0, gravityForce));
+            }
+
+
+            if (wallsEnabled) {
+              ball.handleWallCollision(0, 0, canvas.width, canvas.height);
+            }
+            ball.updatePosition((canvas.deltaTime * speed) / 1000 / iterations);
+
+            if (collisionsEnabled) {
+              const shuffledBalls = this.balls;
+
+              for (let i = 0; i < shuffledBalls.length - 1; i++) {
+                const ball1 = shuffledBalls[i];
+                for (let j = i + 1; j < shuffledBalls.length; j++) {
+                  const ball2 = shuffledBalls[j];
+                  const collisionResult = ball1.handleCollisionWith(ball2);
+                  if (collisionResult) {
+                    collisions.push(collisionResult);
+                  }
+                }
+              }
+            }
+
+            ball.draw(canvas);
           }
-          if (wallsEnabled) {
-            ball.handleCollision(0, 0, canvas.width, canvas.height);
-          }
-          ball.updatePosition(canvas.deltaTime);
-          ball.draw(canvas);
-        }
-      );
+        );
+
+        collisions.forEach(value => value.draw(canvas));
+      }
     };
   }
 
@@ -150,4 +176,22 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
       this.p5Canvas.resizeCanvas(width, height);
     }
   }
+
+  updateDataSource(): void {
+    if (this.dataSource.length === this.balls.length) {
+      this.dataSource = this.balls.map((ball, index) => ({x: (ball.p.x * 0.25 + this.dataSource[index].x * 0.75), y: ball.p.y * 0.25 + this.dataSource[index].y * 0.75, index}));
+    } else {
+      this.dataSource = this.balls.map((ball, index) => ({x: ball.p.x, y: ball.p.y, index}));
+    }
+  }
+}
+
+function shuffle<T>(list: Array<T>) {
+  const result = [];
+  const intermediate = [...list];
+  while (intermediate.length > 0) {
+    const randomIndex = Math.random() * intermediate.length - 1;
+    result.push(...intermediate.splice(randomIndex));
+  }
+  return result;
 }

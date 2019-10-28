@@ -1,10 +1,11 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {MatCardModule} from '@angular/material/card';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatSliderModule} from '@angular/material/slider';
+import {MatTableModule} from '@angular/material/table';
 import {PhysicBallRoutingModule} from './physic-ball-routing.module';
 import {PhysicBallComponent} from './physic-ball.component';
 
@@ -12,12 +13,13 @@ import {PhysicBallComponent} from './physic-ball.component';
   declarations: [PhysicBallComponent],
   imports: [
     PhysicBallRoutingModule,
-    FormsModule,
     MatInputModule,
     MatSliderModule,
     MatCardModule,
     MatCheckboxModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    CommonModule,
+    MatTableModule
   ]
 })
 export class PhysicBallModule {
