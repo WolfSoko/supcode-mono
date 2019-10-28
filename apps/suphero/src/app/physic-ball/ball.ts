@@ -10,9 +10,6 @@ export class Ball {
   _p: Vector = new Vector(0, 0);
   mass = 0;
   radius = 0;
-  hadCollision = false;
-  private pointOfCollision: AbstractVector;
-  private impulseOfCollision: number;
 
   constructor(x: number, y: number, private size: number, private restitution = 0.7, private r, private g, private b) {
     this._p = new Vector(x, y);
@@ -48,22 +45,8 @@ export class Ball {
   draw(canvas: p5) {
     canvas.noStroke();
     const color = canvas.color(this.r, this.g, this.b);
-    if (this.hadCollision) {
-      const white = canvas.color('white');
-      canvas.fill(canvas.lerpColor(color, white, 0.6));
-
-      this.hadCollision = false;
-    } else {
-      canvas.fill(color);
-    }
+    canvas.fill(color);
     canvas.circle(this.p.x, this.p.y, this.size);
-    if (this.pointOfCollision) {
-      canvas.push();
-      canvas.fill('yellow');
-      canvas.circle(this.pointOfCollision.x, this.pointOfCollision.y, this.impulseOfCollision);
-      canvas.pop();
-      this.pointOfCollision = null;
-    }
   }
 
   updatePosition(timeStep: number) {
@@ -95,6 +78,10 @@ export class Ball {
   }
 
   hasCollisionWith(other: Ball): boolean {
+    if (this === other) {
+      return false;
+    }
+
     const xd = this.p.getX() - other.p.getX();
     const yd = this.p.getY() - other.p.getY();
 
@@ -140,9 +127,6 @@ export class Ball {
     if (isNaN(vn) || vn > 0.0) {
       return false;
     }
-
-    this.hadCollision = true;
-    other.hadCollision = true;
 
     // collision impulse
     const i = (-(1.0 + ((this.restitution + other.restitution) / 2)) * vn) / massSum;

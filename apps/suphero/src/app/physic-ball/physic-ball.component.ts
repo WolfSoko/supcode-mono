@@ -7,6 +7,7 @@ import {distinctUntilChanged} from 'rxjs/operators';
 import {Vector} from 'vector2d';
 import {Ball} from './ball';
 import {Collision} from './collision';
+import {QuadTree, Box, Point, Circle} from 'js-quadtree';
 
 interface PhysicBallOptions {
   ballSize: number;
@@ -20,7 +21,8 @@ interface PhysicBallOptions {
   height: number;
   iterations: number;
   speed: number;
-  drawCollisionEffect: boolean
+  drawCollisionEffect: boolean,
+  quadTreeBoxCapacity: number,
 }
 
 const defaultOptions: PhysicBallOptions = {
@@ -35,7 +37,8 @@ const defaultOptions: PhysicBallOptions = {
   height: 320,
   iterations: 10,
   speed: 10,
-  drawCollisionEffect: true
+  drawCollisionEffect: true,
+  quadTreeBoxCapacity: 4
 };
 
 @UntilDestroy({checkProperties: true})
@@ -48,6 +51,7 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
   balls: Ball[] = [];
   options: FormGroup;
   dataSource: { x: number; y: number; index: number }[] = [];
+  quadTree: QuadTree;
 
   @ViewChild('physicsCanvas', {static: true}) canvasElemRef: ElementRef;
   private p5Canvas: P5;
@@ -56,7 +60,10 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
 
   constructor(fb: FormBuilder) {
     this.options = fb.group(defaultOptions);
-    this.updateDataSourceSub = interval(200).subscribe(value => this.updateDataSource());
+    if (this.debug) {
+      this.updateDataSourceSub = interval(200).subscribe(value => this.updateDataSource());
+    }
+    this.quadTree = new QuadTree();
   }
 
   ngAfterContentInit(): void {
@@ -108,17 +115,18 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
 
     canvas.setup = () => {
       const {height, width} = this.options.value;
+      this.quadTree = new QuadTree(new Box(0, 0, height, width));
       canvas.createCanvas(width, height);
     };
 
     canvas.draw = () => {
-      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled, iterations, speed, drawCollisionEffect} = this.options.value as PhysicBallOptions;
+      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled, iterations, speed, drawCollisionEffect, width, height} = this.options.value as PhysicBallOptions;
       canvas.background(20, 20, 20, 20);
       this.adjustBallsLength(ballsAmount, ballSize);
 
       const collisions: Collision[] = [];
       for (let iter = 0; iter < iterations; iter++) {
-        this.balls.forEach(ball => {
+        for (const ball of this.balls) {
             if (canvas.mouseIsPressed) {
               const mP = new Vector(canvas.mouseX, canvas.mouseY);
               const direction = ball.p.subtract(mP);
@@ -135,20 +143,17 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
             if (gravityEnabled) {
               ball.applyForce(new Vector(0, gravityForce));
             }
-
-
-            if (wallsEnabled) {
-              ball.handleWallCollision(0, 0, canvas.width, canvas.height);
-            }
             ball.updatePosition((canvas.deltaTime * speed) / 1000 / iterations);
 
-            if (collisionsEnabled) {
-              const shuffledBalls = this.balls;
 
-              for (let i = 0; i < shuffledBalls.length - 1; i++) {
-                const ball1 = shuffledBalls[i];
-                for (let j = i + 1; j < shuffledBalls.length; j++) {
-                  const ball2 = shuffledBalls[j];
+            if (collisionsEnabled) {
+              this.updateQuadTree();
+              const {p: {x, y}, radius: r} = ball;
+              const ballsToCheck = this.quadTree.query(new Circle(x, y, r + ballSize / 2));
+              for (let i = 0; i < ballsToCheck.length - 1; i++) {
+                const ball1 = this.balls[ballsToCheck[i].data.index];
+                for (let j = i + 1; j < ballsToCheck.length; j++) {
+                  const ball2 = this.balls[ballsToCheck[j].data.index];
                   const collisionResult = ball1.handleCollisionWith(ball2);
                   if (collisionResult && drawCollisionEffect && iter + 1 === iterations) {
                     collisions.push(collisionResult);
@@ -156,14 +161,47 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
                 }
               }
             }
-
-
           }
-        );
+        if (wallsEnabled) {
+          this.updateQuadTree();
+
+          /**
+           *  lllluuuuuuuuuuuuuuuuuu
+           *  lllluuuuuuuuuuuuuuuuuu
+           *  llll   O    o   rrrrrr
+           *  llll     o      rrrrrr
+           *  ddddddddddddddddrrrrrr
+           *  ddddddddddddddddrrrrrr
+           */
+          const wallCollisionDistance = Math.max(ballSize, 10);
+          const widthMinusBallSize = width - wallCollisionDistance;
+          const heightMinusBallSize = height - wallCollisionDistance;
+
+          const wallSafetyArea = 1000000;
+          const up = new Box(wallCollisionDistance, -wallSafetyArea, +wallSafetyArea, +wallSafetyArea + wallCollisionDistance);
+          const right = new Box(widthMinusBallSize, wallCollisionDistance, wallSafetyArea, wallSafetyArea);
+          const down = new Box(-wallSafetyArea, heightMinusBallSize, wallSafetyArea + widthMinusBallSize, wallSafetyArea);
+          const left = new Box(-wallSafetyArea, -wallSafetyArea, +wallSafetyArea +wallCollisionDistance, wallSafetyArea + heightMinusBallSize);
+          const wallsToCheck = [down, left, up, right];
+
+          for(const wall of wallsToCheck){
+            const queryResult = this.quadTree.query(wall);
+            for(const point of queryResult){
+              this.balls[point.data.index].handleWallCollision(0,0,width, height);
+            }
+          }
+        }
+        for (const ball of this.balls) {
+          ball.draw(canvas);
+        }
       }
-      this.balls.forEach(ball => ball.draw(canvas));
+
+
+
       if (drawCollisionEffect) {
-        collisions.forEach(value => value.draw(canvas));
+        for (const value of collisions) {
+          value.draw(canvas);
+        }
       }
     };
   }
@@ -186,6 +224,16 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
     } else {
       this.dataSource = this.balls.map((ball, index) => ({x: ball.p.x, y: ball.p.y, index}));
     }
+  }
+
+  private updateQuadTree() {
+    const points = [];
+    for (let i = 0; i < this.balls.length; i++) {
+      const ball = this.balls[i];
+      points.push(new Point(ball.p.x, ball.p.y, {index: i}));
+    }
+    const {quadTreeBoxCapacity} = this.options.value as PhysicBallOptions;
+    this.quadTree = new QuadTree(new Box(-1000000, -1000000, 2000000, 2000000), {capacity: quadTreeBoxCapacity}, points);
   }
 }
 
