@@ -13,7 +13,7 @@ export class Ball {
 
   constructor(x: number, y: number, private size: number, private restitution = 0.7, private r, private g, private b) {
     this._p = new Vector(x, y);
-    this._a = new Vector(Math.random() * 20, Math.random() * 20);
+    this._v = new Vector(Math.random() * 20, Math.random() * 20);
     this.radius = size / 2.;
     this.mass = this.radius * this.radius * Math.PI;
   }
@@ -56,8 +56,8 @@ export class Ball {
     this.a = new Vector(0, 0);
   }
 
-  applyForce(v) {
-    this.a = this.a.add(v);
+  applyForce(acc: Vector) {
+    this.a = this.a.add(acc);
   }
 
   handleWallCollision(left: number, top: number, right: number, bottom: number) {
@@ -115,7 +115,6 @@ export class Ball {
     const massSum = im1 + im2;
 
     // push-pull them apart based off their mass
-    this.p = this.p.add(mtd.clone().multiplyByScalar(im1 / massSum));
     other.p = other.p.subtract(mtd.clone().multiplyByScalar(im2 / massSum));
 
 
@@ -133,11 +132,43 @@ export class Ball {
 
     const impulse = mtd.clone().normalize().multiplyByScalar(i);
     // change in momentum
-    this.v = this.v.add(impulse.clone().multiplyByScalar(im1));
     other.v = other.v.subtract(impulse.clone().multiplyByScalar(im2));
 
     const impulseOfCollision = impulse.length();
     const pointOfCollision = this.p.add(delta.clone().normalise().multiplyByScalar(-this.radius));
     return new Collision(pointOfCollision, impulseOfCollision);
   }
+}
+
+export class Sun extends Ball {
+  private sp: Vector;
+
+  constructor(x: number, y: number, radius: number = 120, mass: number = 20000) {
+    super(x, y, radius * 2, 1, 255, 255, 255);
+    this.radius = radius;
+    this.mass = 10000;
+    this.sp = new Vector(x, y);
+  }
+
+  get p(): Vector {
+    return this.sp;
+  }
+  set p(p : Vector){
+  }
+
+  get a(): Vector {
+    return new Vector(0,0);
+  }
+  set a(a : Vector){
+  }
+  get v(): Vector {
+    return new Vector(0,0);
+  }
+  set v(v : Vector){
+  }
+
+  updatePosition(timeStep: number) {
+  }
+
+
 }
