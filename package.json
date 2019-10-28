@@ -45,7 +45,7 @@
     "@datorama/akita": "^4.10.8",
     "@datorama/akita-ng-entity-service": "^1.1.1",
     "@nestjs/common": "^6.8.4",
-    "@nestjs/core": "^6.8.4",
+    "@nestjs/core": "^6.8.5",
     "@nestjs/platform-express": "^6.8.4",
     "@nestjs/platform-socket.io": "^6.8.4",
     "@nestjs/websockets": "^6.8.4",
