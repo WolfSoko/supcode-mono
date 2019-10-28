@@ -2,6 +2,9 @@
   <mat-card-title>
     Planets/Balls simulation
   </mat-card-title>
+  <mat-card-subtitle>
+    Click mouse to attract planets
+  </mat-card-subtitle>
   <div #physicsCanvas></div>
 </mat-card>
 <mat-card>
@@ -49,6 +52,9 @@
       </div>
       <div>
         <mat-checkbox formControlName="wallsEnabled">Walls enabled</mat-checkbox>
+      </div>
+      <div>
+        <mat-checkbox formControlName="drawCollisionEffect">Draw collision effect</mat-checkbox>
       </div>
     </form>
   </mat-card-content>

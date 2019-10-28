@@ -15,13 +15,8 @@ export class NavigationComponent {
   isHandset$: Observable<boolean>;
   routeLinks: { path: string; title: string }[];
 
-  constructor(breakpointObserver: BreakpointObserver, akitaRouterQuery: RouterQuery) {
-    this.isHandset$ =
-      breakpointObserver.observe(Breakpoints.Handset)
-        .pipe(
-          map(result => result.matches),
-          shareReplay()
-        );
+  constructor(akitaRouterQuery: RouterQuery) {
+
     this.routeTitle$ = akitaRouterQuery.selectData('title');
     this.routeLinks = routeNamedLinks;
   }

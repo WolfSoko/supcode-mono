@@ -20,6 +20,7 @@ interface PhysicBallOptions {
   height: number;
   iterations: number;
   speed: number;
+  drawCollisionEffect: boolean
 }
 
 const defaultOptions: PhysicBallOptions = {
@@ -34,6 +35,7 @@ const defaultOptions: PhysicBallOptions = {
   height: 320,
   iterations: 10,
   speed: 10,
+  drawCollisionEffect: true
 };
 
 @UntilDestroy({checkProperties: true})
@@ -107,16 +109,15 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
     canvas.setup = () => {
       const {height, width} = this.options.value;
       canvas.createCanvas(width, height);
-      const y = canvas.height / 2;
     };
 
     canvas.draw = () => {
-      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled, iterations, speed} = this.options.value as PhysicBallOptions;
+      const {ballsAmount, ballSize, gravityEnabled, gravityForce, wallsEnabled, collisionsEnabled, iterations, speed, drawCollisionEffect} = this.options.value as PhysicBallOptions;
       canvas.background(20, 20, 20, 20);
       this.adjustBallsLength(ballsAmount, ballSize);
 
-      for (let iter = 0; iter <= iterations; iter++) {
-        const collisions: Collision[] = [];
+      const collisions: Collision[] = [];
+      for (let iter = 0; iter < iterations; iter++) {
         this.balls.forEach(ball => {
             if (canvas.mouseIsPressed) {
               const mP = new Vector(canvas.mouseX, canvas.mouseY);
@@ -149,17 +150,19 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
                 for (let j = i + 1; j < shuffledBalls.length; j++) {
                   const ball2 = shuffledBalls[j];
                   const collisionResult = ball1.handleCollisionWith(ball2);
-                  if (collisionResult) {
+                  if (collisionResult && drawCollisionEffect && iter + 1 === iterations) {
                     collisions.push(collisionResult);
                   }
                 }
               }
             }
 
-            ball.draw(canvas);
+
           }
         );
-
+      }
+      this.balls.forEach(ball => ball.draw(canvas));
+      if (drawCollisionEffect) {
         collisions.forEach(value => value.draw(canvas));
       }
     };
