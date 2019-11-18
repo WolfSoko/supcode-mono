@@ -7,6 +7,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatSliderModule} from '@angular/material/slider';
 import {MatTableModule} from '@angular/material/table';
+import {SocketIoModule} from 'ngx-socket-io';
 import {PhysicBallRoutingModule} from './physic-ball-routing.module';
 import {PhysicBallComponent} from './physic-ball.component';
 
@@ -21,7 +22,8 @@ import {PhysicBallComponent} from './physic-ball.component';
     ReactiveFormsModule,
     CommonModule,
     MatTableModule,
-    MatButtonModule
+    MatButtonModule,
+    SocketIoModule
   ]
 })
 export class PhysicBallModule {

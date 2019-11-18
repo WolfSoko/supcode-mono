@@ -8,8 +8,10 @@ export class Collision {
 
   draw(canvas: p5) {
     const outer = canvas.color('yellow');
+    outer.setAlpha(200);
     const inner = canvas.color('darkred');
-    const d = Math.floor(this.impulse / 100);
+    inner.setAlpha(200);
+    const d = canvas.constrain(Math.floor(this.impulse / 100), 2, 50);
     const iterations = Math.min(10, d);
     for (let i = iterations; i > 0; i--) {
       const normStep = canvas.map(i, 1, iterations, 0, 1);

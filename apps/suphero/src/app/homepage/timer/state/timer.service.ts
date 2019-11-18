@@ -25,4 +25,7 @@ export class TimerService {
       .subscribe();
   }
 
+  disconnect() {
+    this.socket.disconnect();
+  }
 }

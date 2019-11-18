@@ -7,7 +7,7 @@
   </mat-card-subtitle>
   <div #physicsCanvas></div>
 </mat-card>
-<mat-card>
+<mat-card *ngIf="optionsForm$ | async as optionsForm">
   <mat-card-title>
     Configure
   </mat-card-title>
@@ -34,13 +34,16 @@
         <mat-slider [max]="20" [min]="1" formControlName="quadTreeBoxCapacity" [thumbLabel]="true"></mat-slider>
         <mat-label>Quadtree box capacity: {{options.quadTreeBoxCapacity}}</mat-label>
       </div>
+      <div>
+        <mat-checkbox formControlName="drawTails">Draw movement tails</mat-checkbox>
+      </div>
       <h3>Content parameters</h3>
       <div>
-        <mat-slider [max]="300" [min]="1" formControlName="ballsAmount" [thumbLabel]="true"></mat-slider>
+        <mat-slider [max]="300" [min]="0" formControlName="ballsAmount" [thumbLabel]="true"></mat-slider>
         <mat-label>Amount of Planets/Balls {{options.ballsAmount}}</mat-label>
       </div>
       <div>
-        <mat-slider [max]="100" [min]="1" formControlName="ballSize" [thumbLabel]="true"></mat-slider>
+        <mat-slider [max]="30" [min]="3" formControlName="ballSize" [thumbLabel]="true"></mat-slider>
         <mat-label>Size of Planets/Balls {{options.ballSize}}</mat-label>
       </div>
       <div>

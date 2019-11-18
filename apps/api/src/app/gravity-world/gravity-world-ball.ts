@@ -3,7 +3,6 @@ import * as p5 from 'p5';
 import {Vector} from 'vector2d';
 import {Collision} from './collision';
 
-
 export class Ball implements GravityBall {
 
   _a: Vector = new Vector(0, 0);
@@ -14,15 +13,6 @@ export class Ball implements GravityBall {
   ang = 0;
   mass = 0;
   radius = 0;
-
-  static fromGravityBall(gravityBall: GravityBall) {
-    const {_p, b, r, diameter, _v, g} = gravityBall;
-    const {_x, _y} = _p as any;
-    const ball = new Ball(_x, _y, diameter, 0.7, r, g, b);
-    const {_x: _x1, _y: _y1} = _v as any;
-    ball._v = new Vector(_x1, _y1);
-    return ball;
-  }
 
   constructor(x: number, y: number, public diameter: number, private restitution = 0.7, public r, public g, public b) {
     this._p = new Vector(x, y);
@@ -92,9 +82,9 @@ export class Ball implements GravityBall {
     const allowed = 0.01;
     const percentCorrecting = 0.2;
     const leftPenetration = left - leftEdge;
-    if (leftPenetration > allowed) {
+    if (leftPenetration > allowed ) {
       this.p.setX(this.p.x + (leftPenetration) * percentCorrecting);
-      if (vx < 0) {
+      if( vx < 0){
         this.v = this.v.multiplyByVector(new Vector(-this.restitution, 1));
       }
     } else if (px + this.radius >= right && vx > 0) {

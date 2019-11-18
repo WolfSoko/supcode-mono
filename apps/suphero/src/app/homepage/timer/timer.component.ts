@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TimerQuery} from './state/timer.query';
 import {TimerService} from './state/timer.service';
 
@@ -7,13 +7,17 @@ import {TimerService} from './state/timer.service';
   templateUrl: './timer.component.html',
   styleUrls: ['./timer.component.css']
 })
-export class TimerComponent implements OnInit {
+export class TimerComponent implements OnInit, OnDestroy {
 
   constructor(public query: TimerQuery, private service: TimerService) { }
 
   ngOnInit() {
     this.service.receiveTimerUpdates();
     this.service.receiveViews();
+  }
+
+  ngOnDestroy(): void {
+    // this.service.disconnect();
   }
 
 }

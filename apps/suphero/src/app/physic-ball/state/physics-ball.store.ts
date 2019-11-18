@@ -1,14 +1,17 @@
 import {Injectable} from '@angular/core';
 import {Store, StoreConfig} from '@datorama/akita';
-import {createDefaultPhysicsBallOption, PhysicBallOptions} from '../physic-ball-options';
+import {GravityBall, GravityWorldOptions} from '@supcode-mono/api-interfaces';
+
 
 export interface PhysicsBallState {
-  options: PhysicBallOptions;
+  options: GravityWorldOptions;
+  balls: GravityBall[]
 }
 
 export function createInitialState(): PhysicsBallState {
   return {
-    options: createDefaultPhysicsBallOption()
+    options: null,
+    balls: []
   };
 }
 
