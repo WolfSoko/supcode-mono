@@ -71,7 +71,7 @@
     "@datorama/akita-ng-router-store": "^3.1.4",
     "@datorama/akita-ngdevtools": "^3.0.2",
     "@nestjs/schematics": "^6.7.0",
-    "@nestjs/testing": "^6.8.3",
+    "@nestjs/testing": "^6.10.2",
     "@nrwl/cypress": "8.7.0",
     "@nrwl/jest": "8.7.0",
     "@nrwl/nest": "8.7.0",
