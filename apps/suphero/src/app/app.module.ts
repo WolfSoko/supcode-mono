@@ -24,7 +24,7 @@ const config: SocketIoConfig = {url: 'http://localhost:3333', options: {}};
     environment.production ? [] : AkitaNgDevtools.forRoot(),
     SocketIoModule.forRoot(config),
     BrowserAnimationsModule,
-    AkitaNgRouterStoreModule.forRoot(),
+    AkitaNgRouterStoreModule,
     AppRoutingModule,
     BrowserModule,
     LayoutModule,

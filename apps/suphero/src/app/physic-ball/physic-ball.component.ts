@@ -1,14 +1,12 @@
 import {AfterContentInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {filterNil} from '@datorama/akita';
-import {AkitaNgFormsManager} from '@datorama/akita-ng-forms-manager';
 import {UntilDestroy} from '@ngneat/until-destroy';
-import {GravityBall, GravityWorldOptions} from '@supcode-mono/api-interfaces';
+import {GravityWorldOptions} from '@supcode-mono/api-interfaces';
 import * as P5 from 'p5';
-import {interval, Observable, Subscription} from 'rxjs';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {interval, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged, map, switchMap, tap} from 'rxjs/operators';
 import {Ball} from './ball';
-import {PhysicBallOptionsFormState} from './physic-ball-options';
 import {PhysicsBallQuery, PhysicsBallService} from './state';
 
 @UntilDestroy({checkProperties: true})
@@ -23,9 +21,9 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
 
   @ViewChild('physicsCanvas', {static: true}) canvasElemRef: ElementRef;
   debug: false;
+  optionsForm: FormGroup;
   private updateDataSourceSub: Subscription;
   private p5Canvas: P5;
-  optionsForm$: Observable<FormGroup>;
 
   constructor(private fb: FormBuilder, private physicsBallQuery: PhysicsBallQuery, private physicsBallService: PhysicsBallService) {
     this.initForm();
@@ -36,10 +34,17 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
   }
 
   private initForm() {
-    this.optionsForm$ = this.physicsBallQuery.selectOptions().pipe(
+    this.physicsBallQuery.selectOptions().pipe(
       filterNil,
       map(options => this.fb.group(options)),
-    );
+      tap(form => this.optionsForm = form),
+      switchMap(form => form.valueChanges),
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(options => this.physicsBallService.updateOptions(options))
+      /*switchMap(form => form.valueChanges),
+      tap(console.log)*/
+    ).subscribe();
   }
 
   private get options(): GravityWorldOptions {

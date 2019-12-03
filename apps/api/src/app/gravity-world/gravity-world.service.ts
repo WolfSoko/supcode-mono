@@ -54,6 +54,7 @@ export class GravityWorldService {
 
   updateOptions(options: GravityWorldOptions): void {
     const value = this.physicsBallOptions$.getValue();
+    console.log(value);
     this.physicsBallOptions$.next({...value, ...options});
   }
 

@@ -14,10 +14,10 @@ export class PhysicsBallService {
 
     this.socket.fromEvent<GravityWorldOptionsMessage>('gravity-world-option')
       .pipe(
-        tap(optionsMessage => this.updateOptions(optionsMessage.options)),
+        tap(optionsMessage => this.updateOptionsState(optionsMessage.options)),
       )
       .subscribe();
-     this.socket.emit('gravity-world-options');
+    this.socket.emit('gravity-world-options');
 
     this.socket.fromEvent<NextStepMessage>('gravity-world-step')
       .pipe(
@@ -27,7 +27,11 @@ export class PhysicsBallService {
     this.socket.emit('gravity-world-steps');
   }
 
-  private updateOptions(options: GravityWorldOptions) {
+  updateOptions(options: GravityWorldOptions) {
+    this.socket.emit('gravity-world-options', {options: options});
+  }
+
+  private updateOptionsState(options: GravityWorldOptions) {
     this.store.update({options: options});
   }
 
