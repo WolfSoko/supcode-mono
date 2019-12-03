@@ -60,7 +60,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "~7.0.0-alpha.0",
     "vector2d": "^3.0.0",
-    "zone.js": "^0.9.1"
+    "zone.js": "^0.10.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^0.900.0-rc.4",
