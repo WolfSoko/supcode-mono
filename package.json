@@ -48,7 +48,7 @@
     "@nestjs/common": "^6.8.4",
     "@nestjs/core": "^6.8.4",
     "@nestjs/platform-express": "^6.8.4",
-    "@nestjs/platform-socket.io": "^6.8.4",
+    "@nestjs/platform-socket.io": "^6.11.8",
     "@nestjs/websockets": "^6.8.4",
     "@ngneat/until-destroy": "^7.0.0",
     "@nrwl/angular": "8.9.0",
