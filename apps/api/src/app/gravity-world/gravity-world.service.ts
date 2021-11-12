@@ -66,7 +66,7 @@ export class GravityWorldService {
     if (this.gravityBalls$ == null) {
       this.gravityBalls$ = this.buildClock(Math.floor(1000 / 40))
         .pipe(
-          map((dT) => this.nextStep(dT)),
+          map((dT: number) => this.nextStep(dT)),
           share()
         );
     }

@@ -1,6 +1,6 @@
 import {AfterContentInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
-import {filterNil} from '@datorama/akita';
+import {filterNil, filterNilValue} from '@datorama/akita';
 import {UntilDestroy} from '@ngneat/until-destroy';
 import {GravityWorldOptions} from '@supcode-mono/api-interfaces';
 import * as P5 from 'p5';
@@ -35,13 +35,13 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
 
   private initForm() {
     this.physicsBallQuery.selectOptions().pipe(
-      filterNil,
+      filterNilValue(),
       map(options => this.fb.group(options)),
       tap(form => this.optionsForm = form),
       switchMap(form => form.valueChanges),
       debounceTime(300),
       distinctUntilChanged(),
-      tap(options => this.physicsBallService.updateOptions(options))
+      tap((options: GravityWorldOptions) => this.physicsBallService.updateOptions(options))
       /*switchMap(form => form.valueChanges),
       tap(console.log)*/
     ).subscribe();
@@ -54,7 +54,7 @@ export class PhysicBallComponent implements AfterContentInit, OnDestroy {
   ngAfterContentInit(): void {
     const options$ = this.physicsBallQuery.selectOptions();
     options$.pipe(
-      filterNil,
+      filterNilValue(),
       distinctUntilChanged((
         {width: w1, height: h1}, {width: w2, height: h2}) =>
         w1 === w2 && h1 === h2
